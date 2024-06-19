@@ -1,15 +1,59 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {dia, ui, shapes} from '@joint/plus';
 
 @Component({
   selector: 'app-diagram',
   templateUrl: './diagram.component.html',
   styleUrls: ['./diagram.component.scss']
 })
-export class DiagramComponent implements OnInit {
+export class DiagramComponent implements OnInit, AfterViewInit {
 
-  constructor() { }
+  @ViewChild('canvas') canvas: ElementRef;
 
-  ngOnInit(): void {
+  private graph: dia.Graph;
+  private paper: dia.Paper;
+  private scroller: ui.PaperScroller;
+
+  public ngOnInit(): void {
+    const graph = this.graph = new dia.Graph({}, {cellNamespace: shapes});
+
+    const paper = this.paper = new dia.Paper({
+      model: graph,
+      background: {
+        color: '#F8F9FA',
+      },
+      frozen: true,
+      async: true,
+      sorting: dia.Paper.sorting.APPROX,
+      cellViewNamespace: shapes
+    });
+
+    const scroller = this.scroller = new ui.PaperScroller({
+      paper,
+      autoResizePaper: true,
+      cursor: 'grab'
+    });
+
+    scroller.render();
+
+    const rect = new shapes.standard.Rectangle({
+      position: {x: 100, y: 100},
+      size: {width: 100, height: 50},
+      attrs: {
+        label: {
+          text: 'Hello World'
+        }
+      }
+    });
+
+    this.graph.addCell(rect);
+  }
+
+  public ngAfterViewInit(): void {
+    const {scroller, paper, canvas} = this;
+    canvas.nativeElement.appendChild(this.scroller.el);
+    scroller.center();
+    paper.unfreeze();
   }
 
 }
